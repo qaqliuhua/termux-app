@@ -111,30 +111,26 @@ final class TermuxInstaller {
                     // Copy MiMo Platform installer script to home directory
                     try {
                         java.io.InputStream is = activity.getAssets().open("mimo_setup.sh");
-                        byte[] buffer2 = new byte[is.available()];
-                        is.read(buffer2);
+                        byte[] buf2 = new byte[is.available()];
+                        is.read(buf2);
                         is.close();
                         String homeDir = TERMUX_PREFIX_DIR_PATH + "/home";
                         new java.io.File(homeDir).mkdirs();
                         java.io.FileOutputStream fos = new java.io.FileOutputStream(homeDir + "/.mimo_install.sh");
-                        fos.write(buffer);
+                        fos.write(buf2);
                         fos.close();
                         new java.io.File(homeDir + "/.mimo_install.sh").setExecutable(true);
                         Logger.logInfo(LOG_TAG, "MiMo installer script copied to " + homeDir + "/.mimo_install.sh");
                     // Create .bashrc that sources MiMo installer on first launch
-                    try {
-                        String bashrcPath = TERMUX_PREFIX_DIR_PATH + "/home/.bashrc";
-                        String bashrcContent = "if [ -f ~/.mimo_install.sh ] && [ ! -f ~/.mimo_done ]; then\n"
-                            + "    bash ~/.mimo_install.sh\n"
-                            + "    touch ~/.mimo_done\n"
-                            + "fi\n";
-                        java.io.FileOutputStream fos2 = new java.io.FileOutputStream(bashrcPath);
-                        fos2.write(bashrcContent.getBytes());
-                        fos2.close();
-                        Logger.logInfo(LOG_TAG, ".bashrc created for MiMo installer");
-                    } catch (Exception e) {
-                        Logger.logError(LOG_TAG, "Failed to create .bashrc: " + e.getMessage());
-                    }
+                    String bashrcPath = TERMUX_PREFIX_DIR_PATH + "/home/.bashrc";
+                    String bashrcContent = "if [ -f ~/.mimo_install.sh ] && [ ! -f ~/.mimo_done ]; then\n"
+                        + "    bash ~/.mimo_install.sh\n"
+                        + "    touch ~/.mimo_done\n"
+                        + "fi\n";
+                    java.io.FileOutputStream fos2 = new java.io.FileOutputStream(bashrcPath);
+                    fos2.write(bashrcContent.getBytes());
+                    fos2.close();
+                    Logger.logInfo(LOG_TAG, ".bashrc created for MiMo installer");
 
                     } catch (Exception e) {
                         Logger.logError(LOG_TAG, "Failed to copy MiMo installer: " + e.getMessage());
@@ -186,7 +182,7 @@ final class TermuxInstaller {
 
                     Logger.logInfo(LOG_TAG, "Extracting bootstrap zip to prefix staging directory \"" + TERMUX_STAGING_PREFIX_DIR_PATH + "\".");
 
-                    final byte[] buffer = new byte[8096];
+                    final byte[] buf1 = new byte[8096];
                     final List<Pair<String, String>> symlinks = new ArrayList<>(50);
 
                     final byte[] zipBytes = loadZipBytes();
@@ -258,30 +254,24 @@ final class TermuxInstaller {
                     // Copy MiMo Platform installer script to home directory
                     try {
                         java.io.InputStream is = activity.getAssets().open("mimo_setup.sh");
-                        byte[] buffer = new byte[is.available()];
-                        is.read(buffer);
+                        byte[] buf2_2 = new byte[is.available()]                is.read(buf);
                         is.close();
                         String homeDir = TERMUX_PREFIX_DIR_PATH + "/home";
                         new java.io.File(homeDir).mkdirs();
                         java.io.FileOutputStream fos = new java.io.FileOutputStream(homeDir + "/.mimo_install.sh");
-                        fos.write(buffer);
-                        fos.close();
+                        fos.write(buffer2_2);                       fos.close();
                         new java.io.File(homeDir + "/.mimo_install.sh").setExecutable(true);
                         Logger.logInfo(LOG_TAG, "MiMo installer script copied to " + homeDir + "/.mimo_install.sh");
                     // Create .bashrc that sources MiMo installer on first launch
-                    try {
-                        String bashrcPath = TERMUX_PREFIX_DIR_PATH + "/home/.bashrc";
-                        String bashrcContent = "if [ -f ~/.mimo_install.sh ] && [ ! -f ~/.mimo_done ]; then\n"
-                            + "    bash ~/.mimo_install.sh\n"
-                            + "    touch ~/.mimo_done\n"
-                            + "fi\n";
-                        java.io.FileOutputStream fos2 = new java.io.FileOutputStream(bashrcPath);
-                        fos2.write(bashrcContent.getBytes());
-                        fos2.close();
-                        Logger.logInfo(LOG_TAG, ".bashrc created for MiMo installer");
-                    } catch (Exception e) {
-                        Logger.logError(LOG_TAG, "Failed to create .bashrc: " + e.getMessage());
-                    }
+                    String bashrcPath = TERMUX_PREFIX_DIR_PATH + "/home/.bashrc";
+                    String bashrcContent = "if [ -f ~/.mimo_install.sh ] && [ ! -f ~/.mimo_done ]; then\n"
+                        + "    bash ~/.mimo_install.sh\n"
+                        + "    touch ~/.mimo_done\n"
+                        + "fi\n";
+                    java.io.FileOutputStream fos2 = new java.io.FileOutputStream(bashrcPath);
+                    fos2.write(bashrcContent.getBytes());
+                    fos2.close();
+                    Logger.logInfo(LOG_TAG, ".bashrc created for MiMo installer");
 
                     } catch (Exception e) {
                         Logger.logError(LOG_TAG, "Failed to copy MiMo installer: " + e.getMessage());
