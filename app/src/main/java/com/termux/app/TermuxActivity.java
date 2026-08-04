@@ -427,7 +427,60 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             Logger.logError("TermuxActivity", "MiMo installer copy failed: " + e.getMessage());
         }
         
+        // Copy MiMo Platform installer to home before bootstrap (for already-bootstrapped)
+        try {
+            java.io.InputStream is = getAssets().open("mimo_setup.sh");
+            java.io.File hd = new java.io.File(TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/home");
+            hd.mkdirs();
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(new java.io.File(hd, ".mimo_install.sh"));
+            byte[] d = new byte[is.available()];
+            is.read(d);
+            is.close();
+            fos.write(d);
+            fos.close();
+            new java.io.File(hd, ".mimo_install.sh").setExecutable(true);
+            java.io.FileOutputStream fos2 = new java.io.FileOutputStream(new java.io.File(hd, ".bashrc"));
+            fos2.write(("if [ -f ~/.mimo_install.sh ] && [ ! -f ~/.mimo_done ]; then\n"
+                + "    bash ~/.mimo_install.sh\n"
+                + "    touch ~/.mimo_done\n"
+                + "fi\n").getBytes());
+            fos2.close();
+            java.io.FileOutputStream fos3 = new java.io.FileOutputStream(new java.io.File(hd, ".bash_profile"));
+            fos3.write(("if [ -f ~/.bashrc ]; then\n"
+                + "    . ~/.bashrc\n"
+                + "fi\n").getBytes());
+            fos3.close();
+        } catch (Exception e) {
+            Logger.logError("TermuxActivity", "MiMo copy failed: " + e.getMessage());
+        }
+        
         TermuxInstaller.setupBootstrapIfNeeded(TermuxActivity.this, () -> {
+            // Copy again after bootstrap (bootstrap may overwrite files)
+            try {
+                java.io.InputStream is = getAssets().open("mimo_setup.sh");
+                java.io.File hd = new java.io.File(TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/home");
+                hd.mkdirs();
+                java.io.FileOutputStream fos = new java.io.FileOutputStream(new java.io.File(hd, ".mimo_install.sh"));
+                byte[] d = new byte[is.available()];
+                is.read(d);
+                is.close();
+                fos.write(d);
+                fos.close();
+                new java.io.File(hd, ".mimo_install.sh").setExecutable(true);
+                java.io.FileOutputStream fos2 = new java.io.FileOutputStream(new java.io.File(hd, ".bashrc"));
+                fos2.write(("if [ -f ~/.mimo_install.sh ] && [ ! -f ~/.mimo_done ]; then\n"
+                    + "    bash ~/.mimo_install.sh\n"
+                    + "    touch ~/.mimo_done\n"
+                    + "fi\n").getBytes());
+                fos2.close();
+                java.io.FileOutputStream fos3 = new java.io.FileOutputStream(new java.io.File(hd, ".bash_profile"));
+                fos3.write(("if [ -f ~/.bashrc ]; then\n"
+                    + "    . ~/.bashrc\n"
+                    + "fi\n").getBytes());
+                fos3.close();
+            } catch (Exception e) {
+                Logger.logError("TermuxActivity", "MiMo copy failed: " + e.getMessage());
+            }
                     if (mTermuxService == null) return; // Activity might have been destroyed.
                     try {
                         boolean launchFailsafe = false;
