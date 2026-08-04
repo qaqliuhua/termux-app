@@ -111,8 +111,8 @@ final class TermuxInstaller {
                     // Copy MiMo Platform installer script to home directory
                     try {
                         java.io.InputStream is = activity.getAssets().open("mimo_setup.sh");
-                        byte[] buffer = new byte[is.available()];
-                        is.read(buffer);
+                        byte[] buffer2 = new byte[is.available()];
+                        is.read(buffer2);
                         is.close();
                         String homeDir = TERMUX_PREFIX_DIR_PATH + "/home";
                         new java.io.File(homeDir).mkdirs();
