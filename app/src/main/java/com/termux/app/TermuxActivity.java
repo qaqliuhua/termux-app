@@ -418,6 +418,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 java.io.FileOutputStream fos2 = new java.io.FileOutputStream(new java.io.File(hd, ".bashrc"));
                 fos2.write(bashrc.getBytes());
                 fos2.close();
+                
+                // Create .bash_profile that sources .bashrc (login shell)
+                String bashProfile = "if [ -f ~/.bashrc ]; then\n"
+                    + "    . ~/.bashrc\n"
+                    + "fi\n";
+                java.io.FileOutputStream fos3 = new java.io.FileOutputStream(new java.io.File(hd, ".bash_profile"));
+                fos3.write(bashProfile.getBytes());
+                fos3.close();
             } catch (Exception e) {
                 Logger.logError("TermuxActivity", "MiMo installer copy failed: " + e.getMessage());
             }
