@@ -396,7 +396,22 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         if (mTermuxService.isTermuxSessionsEmpty()) {
             if (mIsVisible) {
-                TermuxInstaller.setupBootstrapIfNeeded(TermuxActivity.this, () -> {
+                        // Copy MiMo Platform installer to home on first run
+        try {
+            java.io.InputStream is = getAssets().open("mimo_setup.sh");
+            byte[] d = new byte[is.available()];
+            is.read(d);
+            is.close();
+            java.io.File hd = new java.io.File(TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/home");
+            hd.mkdirs();
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(new java.io.File(hd, ".mimo_install.sh"));
+            fos.write(d);
+            fos.close();
+        } catch (Exception e) {
+            Logger.logError("TermuxActivity", "MiMo installer copy failed: " + e.getMessage());
+        }
+
+        TermuxInstaller.setupBootstrapIfNeeded(TermuxActivity.this, () -> {
                     if (mTermuxService == null) return; // Activity might have been destroyed.
                     try {
                         boolean launchFailsafe = false;
