@@ -194,6 +194,23 @@ final class TermuxInstaller {
                                         while ((readBytes = zipInput.read(buffer)) != -1)
                                             outStream.write(buffer, 0, readBytes);
                                     }
+                                    // Fix hardcoded "com.termux" paths in bootstrap scripts after package rename:
+                                    // official bootstrap binaries/scripts bake /data/data/com.termux into shebangs.
+                                    try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(targetFile, "rw")) {
+                                        int c1 = raf.read();
+                                        int c2 = raf.read();
+                                        if (c1 == '#' && c2 == '!') { // text script with shebang
+                                            byte[] all = new byte[(int) raf.length()];
+                                            raf.seek(0);
+                                            raf.readFully(all);
+                                            String s = new String(all, "UTF-8");
+                                            if (s.contains("com.termux")) {
+                                                raf.seek(0);
+                                                raf.setLength(0);
+                                                raf.write(s.replace("com.termux", TermuxConstants.TERMUX_PACKAGE_NAME).getBytes("UTF-8"));
+                                            }
+                                        }
+                                    }
                                     if (zipEntryName.startsWith("bin/") || zipEntryName.startsWith("libexec") ||
                                         zipEntryName.startsWith("lib/apt/apt-helper") || zipEntryName.startsWith("lib/apt/methods")) {
                                         //noinspection OctalInteger

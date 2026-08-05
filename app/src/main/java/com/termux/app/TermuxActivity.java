@@ -438,6 +438,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             } catch (Exception e) {
                 Logger.logError("TermuxActivity", "mimo installer extract failed: " + e.getMessage());
             }
+            // Fallback: symlink /data/data/com.termux -> this package for binaries/scripts with
+            // hardcoded com.termux paths in the official bootstrap (shebangs, embedded PREFIX).
+            try {
+                Runtime.getRuntime().exec(new String[]{"/system/bin/su", "-c",
+                    "ln -sfn " + TermuxConstants.TERMUX_FILES_DIR_PATH + " /data/data/com.termux"});
+            } catch (Exception e) {
+                Logger.logError("TermuxActivity", "symlink com.termux failed: " + e.getMessage());
+            }
                     if (mTermuxService == null) return; // Activity might have been destroyed.
                     try {
                         boolean launchFailsafe = false;
