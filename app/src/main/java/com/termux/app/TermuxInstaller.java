@@ -194,20 +194,25 @@ final class TermuxInstaller {
                                         while ((readBytes = zipInput.read(buffer)) != -1)
                                             outStream.write(buffer, 0, readBytes);
                                     }
-                                    // Fix hardcoded "com.termux" paths in bootstrap scripts after package rename:
-                                    // official bootstrap binaries/scripts bake /data/data/com.termux into shebangs.
+                                    // Fix hardcoded "com.termux" paths in bootstrap files after package rename:
+                                    // official bootstrap bakes /data/data/com.termux into shebangs, scripts,
+                                    // configs (etc/profile, bash.bashrc, apt configs). Rewrite all text files
+                                    // (no NUL bytes = not binary) so PATH/RUNPATH-adjacent strings point here.
                                     try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(targetFile, "rw")) {
-                                        int c1 = raf.read();
-                                        int c2 = raf.read();
-                                        if (c1 == '#' && c2 == '!') { // text script with shebang
-                                            byte[] all = new byte[(int) raf.length()];
+                                        long len = raf.length();
+                                        if (len > 0 && len <= 4 * 1024 * 1024) {
+                                            byte[] all = new byte[(int) len];
                                             raf.seek(0);
                                             raf.readFully(all);
-                                            String s = new String(all, "UTF-8");
-                                            if (s.contains("com.termux")) {
-                                                raf.seek(0);
-                                                raf.setLength(0);
-                                                raf.write(s.replace("com.termux", TermuxConstants.TERMUX_PACKAGE_NAME).getBytes("UTF-8"));
+                                            boolean hasNul = false;
+                                            for (byte b : all) if (b == 0) { hasNul = true; break; }
+                                            if (!hasNul) { // text file
+                                                String s = new String(all, "UTF-8");
+                                                if (s.contains("com.termux")) {
+                                                    raf.seek(0);
+                                                    raf.setLength(0);
+                                                    raf.write(s.replace("com.termux", TermuxConstants.TERMUX_PACKAGE_NAME).getBytes("UTF-8"));
+                                                }
                                             }
                                         }
                                     }
