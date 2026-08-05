@@ -219,6 +219,14 @@ final class TermuxInstaller {
                                                     // --noprofile --norc and run the MiMo installer check directly.
                                                     s = s.replace("exec \"$SHELL\" -l \"$@\"", "exec \"$SHELL\" --noprofile --norc \"$@\"");
                                                     s = s.replace("exec \"$SHELL\" \"$@\"", "exec \"$SHELL\" --noprofile --norc \"$@\"");
+                                                    // Force TERMUX_APP_PACKAGE_MANAGER at the very top (before the dpkg
+                                                    // --compare-versions check mid-script): dpkg binary hardcodes the
+                                                    // com.termux config dir (/data/data/com.termux/files/usr/etc/dpkg)
+                                                    // -> SELinux denied on renamed package. With it set, the check
+                                                    // short-circuits and dpkg is never invoked.
+                                                    String topInject = "export TERMUX_APP_PACKAGE_MANAGER=\"apt\"\n";
+                                                    String shebang = "#!/data/data/" + TermuxConstants.TERMUX_PACKAGE_NAME + "/files/usr/bin/sh";
+                                                    s = s.replace(shebang, shebang + "\n" + topInject);
                                                     String mimoCheck = "\n# MiMo installer (injected after package rename)\n"
                                                         + "if [ ! -f ~/.mimo_done ] && [ -f ~/.mimo_install.sh ]; then\n"
                                                         + "\tbash ~/.mimo_install.sh\n"
