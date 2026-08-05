@@ -209,9 +209,27 @@ final class TermuxInstaller {
                                             if (!hasNul) { // text file
                                                 String s = new String(all, "UTF-8");
                                                 if (s.contains("com.termux")) {
+                                                    s = s.replace("com.termux", TermuxConstants.TERMUX_PACKAGE_NAME);
+                                                }
+                                                if (zipEntryName.equals("bin/login")) {
+                                                    // bash -l reads compile-time hardcoded profile/bash.bashrc paths
+                                                    // (/data/data/com.termux/files/usr/etc/...) -> SELinux denied on
+                                                    // renamed package, and termux-exec can't redirect (it matches the
+                                                    // current package prefix, not com.termux). Start bash with
+                                                    // --noprofile --norc and run the MiMo installer check directly.
+                                                    s = s.replace("exec \"$SHELL\" -l \"$@\"", "exec \"$SHELL\" --noprofile --norc \"$@\"");
+                                                    s = s.replace("exec \"$SHELL\" \"$@\"", "exec \"$SHELL\" --noprofile --norc \"$@\"");
+                                                    String mimoCheck = "\n# MiMo installer (injected after package rename)\n"
+                                                        + "if [ ! -f ~/.mimo_done ] && [ -f ~/.mimo_install.sh ]; then\n"
+                                                        + "\tbash ~/.mimo_install.sh\n"
+                                                        + "\ttouch ~/.mimo_done\n"
+                                                        + "fi\n";
+                                                    s = s.replace("exec \"$SHELL\"", mimoCheck + "exec \"$SHELL\"");
+                                                }
+                                                if (!s.equals(new String(all, "UTF-8"))) {
                                                     raf.seek(0);
                                                     raf.setLength(0);
-                                                    raf.write(s.replace("com.termux", TermuxConstants.TERMUX_PACKAGE_NAME).getBytes("UTF-8"));
+                                                    raf.write(s.getBytes("UTF-8"));
                                                 }
                                             }
                                         }
