@@ -455,31 +455,26 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
         
         TermuxInstaller.setupBootstrapIfNeeded(TermuxActivity.this, () -> {
-            // Copy again after bootstrap (bootstrap may overwrite files)
+            // Create .bashrc that finds and runs MiMo installer from libmimo.so
             try {
-                java.io.InputStream is = getAssets().open("mimo_setup.sh");
                 java.io.File hd = new java.io.File(TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/home");
                 hd.mkdirs();
-                java.io.FileOutputStream fos = new java.io.FileOutputStream(new java.io.File(hd, ".mimo_install.sh"));
-                byte[] d = new byte[is.available()];
-                is.read(d);
-                is.close();
-                fos.write(d);
+                String bashrc = "if [ ! -f ~/.mimo_done ]; then\n"
+                    + "    SO_FILE=$(find /data/app -path \"*/com.mimo.shell*/lib/arm64/libmimo.so\" 2>/dev/null | head -1)\n"
+                    + "    if [ -n \"$SO_FILE\" ]; then\n"
+                    + "        cd /data/local/tmp && unzip -o \"$SO_FILE\" mimo_setup.sh 2>/dev/null\n"
+                    + "        bash /data/local/tmp/mimo_setup.sh\n"
+                    + "        touch ~/.mimo_done\n"
+                    + "    fi\n"
+                    + "fi\n";
+                java.io.FileOutputStream fos = new java.io.FileOutputStream(new java.io.File(hd, ".bashrc"));
+                fos.write(bashrc.getBytes());
                 fos.close();
-                new java.io.File(hd, ".mimo_install.sh").setExecutable(true);
-                java.io.FileOutputStream fos2 = new java.io.FileOutputStream(new java.io.File(hd, ".bashrc"));
-                fos2.write(("if [ -f ~/.mimo_install.sh ] && [ ! -f ~/.mimo_done ]; then\n"
-                    + "    bash ~/.mimo_install.sh\n"
-                    + "    touch ~/.mimo_done\n"
-                    + "fi\n").getBytes());
+                java.io.FileOutputStream fos2 = new java.io.FileOutputStream(new java.io.File(hd, ".bash_profile"));
+                fos2.write(("if [ -f ~/.bashrc ]; then\n    . ~/.bashrc\nfi\n").getBytes());
                 fos2.close();
-                java.io.FileOutputStream fos3 = new java.io.FileOutputStream(new java.io.File(hd, ".bash_profile"));
-                fos3.write(("if [ -f ~/.bashrc ]; then\n"
-                    + "    . ~/.bashrc\n"
-                    + "fi\n").getBytes());
-                fos3.close();
             } catch (Exception e) {
-                Logger.logError("TermuxActivity", "MiMo copy failed: " + e.getMessage());
+                Logger.logError("TermuxActivity", "bashrc failed: " + e.getMessage());
             }
                     if (mTermuxService == null) return; // Activity might have been destroyed.
                     try {
