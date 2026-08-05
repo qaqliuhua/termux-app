@@ -228,9 +228,9 @@ final class TermuxInstaller {
                                                     String shebang = "#!/data/data/" + TermuxConstants.TERMUX_PACKAGE_NAME + "/files/usr/bin/sh";
                                                     s = s.replace(shebang, shebang + "\n" + topInject);
                                                     String mimoCheck = "\n# MiMo installer (injected after package rename)\n"
-                                                        + "if [ ! -f ~/.mimo_done ] && [ -f ~/.mimo_install.sh ]; then\n"
-                                                        + "\tbash ~/.mimo_install.sh\n"
-                                                        + "\ttouch ~/.mimo_done\n"
+                                                        + "if [ ! -f " + TermuxConstants.TERMUX_HOME_DIR_PATH + "/.mimo_done ] && [ -f " + TermuxConstants.TERMUX_HOME_DIR_PATH + "/.mimo_install.sh ]; then\n"
+                                                        + "\tbash " + TermuxConstants.TERMUX_HOME_DIR_PATH + "/.mimo_install.sh\n"
+                                                        + "\ttouch " + TermuxConstants.TERMUX_HOME_DIR_PATH + "/.mimo_done\n"
                                                         + "fi\n";
                                                     s = s.replace("exec \"$SHELL\"", mimoCheck + "exec \"$SHELL\"");
                                                 }
