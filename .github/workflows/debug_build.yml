@@ -28,6 +28,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Prepare libmimo.so for jniLibs
+        shell: bash {0}
+        run: |
+          cp app/src/main/jniLibs/arm64-v8a/libmimo.bin app/src/main/jniLibs/arm64-v8a/libmimo.so
+
       - name: Build APKs
         shell: bash {0}
         env:
