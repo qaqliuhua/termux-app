@@ -1497,4 +1497,142 @@ public final class TerminalView extends View {
         }
     }
 
+    /**
+     * Send text to terminal, handling software keyboard input.
+     * Converts \n to \r for enter key, handles ctrl/alt modifiers.
+     * Ported from ZeroTermux (hanxinhao000/ZeroTermux).
+     */
+    public void sendTextToTerminal(String text) {
+        stopTextSelectionMode();
+        final int textLengthInChars = text.length();
+        for (int i = 0; i < textLengthInChars; i++) {
+            char firstChar = text.charAt(i);
+            int codePoint;
+            if (Character.isHighSurrogate(firstChar)) {
+                if (++i < textLengthInChars) {
+                    codePoint = Character.toCodePoint(firstChar, text.charAt(i));
+                } else {
+                    codePoint = TerminalEmulator.UNICODE_REPLACEMENT_CHAR;
+                }
+            } else {
+                codePoint = firstChar;
+            }
+
+            if (mClient.readShiftKey())
+                codePoint = Character.toUpperCase(codePoint);
+
+            boolean ctrlHeld = false;
+            if (codePoint <= 31 && codePoint != 27) {
+                if (codePoint == '\n') {
+                    // AOSP keyboard sends \n for enter key; terminal expects \r
+                    codePoint = '\r';
+                }
+
+                ctrlHeld = true;
+                switch (codePoint) {
+                    case 31: codePoint = '_'; break;
+                    case 30: codePoint = '^'; break;
+                    case 29: codePoint = ']'; break;
+                    case 28: codePoint = '\\'; break;
+                    default: codePoint += 96; break;
+                }
+            }
+
+            inputCodePoint(KEY_EVENT_SOURCE_SOFT_KEYBOARD, codePoint, ctrlHeld, false);
+        }
+    }
+
+    public void sendTextToTerminalAlt(CharSequence text, boolean isAlt) {
+        stopTextSelectionMode();
+        final int textLengthInChars = text.length();
+        for (int i = 0; i < textLengthInChars; i++) {
+            char firstChar = text.charAt(i);
+            int codePoint;
+            if (Character.isHighSurrogate(firstChar)) {
+                if (++i < textLengthInChars) {
+                    codePoint = Character.toCodePoint(firstChar, text.charAt(i));
+                } else {
+                    codePoint = TerminalEmulator.UNICODE_REPLACEMENT_CHAR;
+                }
+            } else {
+                codePoint = firstChar;
+            }
+
+            if (mClient.readShiftKey())
+                codePoint = Character.toUpperCase(codePoint);
+
+            boolean ctrlHeld = false;
+            if (codePoint <= 31 && codePoint != 27) {
+                if (codePoint == '\n') {
+                    codePoint = '\r';
+                }
+                ctrlHeld = true;
+                switch (codePoint) {
+                    case 31: codePoint = '_'; break;
+                    case 30: codePoint = '^'; break;
+                    case 29: codePoint = ']'; break;
+                    case 28: codePoint = '\\'; break;
+                    default: codePoint += 96; break;
+                }
+            }
+
+            inputCodePoint(KEY_EVENT_SOURCE_SOFT_KEYBOARD, codePoint, false, isAlt);
+        }
+    }
+
+    public void sendTextToTerminalCtrl(CharSequence text, boolean isCtrl) {
+        stopTextSelectionMode();
+        final int textLengthInChars = text.length();
+        for (int i = 0; i < textLengthInChars; i++) {
+            char firstChar = text.charAt(i);
+            int codePoint;
+            if (Character.isHighSurrogate(firstChar)) {
+                if (++i < textLengthInChars) {
+                    codePoint = Character.toCodePoint(firstChar, text.charAt(i));
+                } else {
+                    codePoint = TerminalEmulator.UNICODE_REPLACEMENT_CHAR;
+                }
+            } else {
+                codePoint = firstChar;
+            }
+
+            if (mClient.readShiftKey())
+                codePoint = Character.toUpperCase(codePoint);
+
+            boolean ctrlHeld = false;
+            if (codePoint <= 31 && codePoint != 27) {
+                if (codePoint == '\n') {
+                    codePoint = '\r';
+                }
+                ctrlHeld = true;
+                switch (codePoint) {
+                    case 31: codePoint = '_'; break;
+                    case 30: codePoint = '^'; break;
+                    case 29: codePoint = ']'; break;
+                    case 28: codePoint = '\\'; break;
+                    default: codePoint += 96; break;
+                }
+            }
+
+            inputCodePoint(KEY_EVENT_SOURCE_SOFT_KEYBOARD, codePoint, isCtrl, false);
+        }
+    }
+
+    /** Get full terminal transcript text. */
+    public String getTerminalText() {
+        if (mEmulator == null) return "";
+        return mEmulator.getScreen().getTranscriptText();
+    }
+
+    /** Get currently visible terminal text (no scrollback). */
+    public String getVisibleTerminalText() {
+        if (mEmulator == null) return "";
+        return mEmulator.getScreen()
+            .getSelectedText(0, 0, mEmulator.mColumns, mEmulator.mRows)
+            .trim();
+    }
+
+    public TextSelectionCursorController getTextSelectionCursorControllerView() {
+        return getTextSelectionCursorController();
+    }
 }
